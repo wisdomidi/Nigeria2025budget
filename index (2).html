@@ -1,0 +1,460 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Nigeria 2025 Budget Explorer by Wisdom Idiakhoa</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    html { scroll-behavior: smooth; }
+    section { scroll-margin-top: 140px; }
+    .chart-container { position: relative; height: 400px; width: 100%; margin-bottom: 20px; }
+    .large-chart-container { position: relative; height: 500px; width: 100%; margin-bottom: 20px; }
+    header { box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); }
+    footer { box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.1); }
+    nav a:focus { outline: 2px solid #ffffff; outline-offset: 2px; }
+    @media (max-width: 640px) {
+      header { padding: 2px; min-height: 100px; }
+      header h1 { font-size: 1.5rem; }
+      header p { font-size: 0.875rem; }
+      nav a { font-size: 0.875rem; margin: 0 0.5rem; }
+      main { padding-top: 110px !important; }
+      section { scroll-margin-top: 110px; }
+    }
+  </style>
+</head>
+<body class="bg-gray-100 font-sans">
+  <header class="bg-green-800 text-white p-4 text-center fixed w-full top-0 z-10" style="min-height: 120px;">
+    <h1 class="text-3xl font-bold">The Nigeria 2025 Budget Explorer by Wisdom Idiakhoa</h1>
+    <p class="mt-1">Unveiling the N54.99 Trillion Story</p>
+    <nav class="mt-2">
+      <a href="#home" class="text-white mx-2 hover:underline">Home</a>
+      <a href="#overpriced" class="text-white mx-2 hover:underline">Overpriced Items</a>
+      <a href="#insertions" class="text-white mx-2 hover:underline">Insertions</a>
+      <a href="#agency" class="text-white mx-2 hover:underline">Agency Spending</a>
+      <a href="#economic" class="text-white mx-2 hover:underline">Economic Context</a>
+      <a href="#comparison" class="text-white mx-2 hover:underline">Budget Comparison</a>
+      <a href="#sector-comparison" class="text-white mx-2 hover:underline">Sector Comparison</a>
+      <a href="#cta" class="text-white mx-2 hover:underline">Call to Action</a>
+    </nav>
+  </header>
+
+  <main class="container mx-auto p-6 pt-[140px]">
+    <!-- Home Section -->
+    <section id="home" class="mb-12 pt-[50px]">
+      <h2 class="text-3xl font-semibold mb-4">Budget Overview</h2>
+      <p class="mb-4">Defining the 2025 Nigerian budget framework, signed into law on February 28, 2025, totaling N54.99 trillion—nearly double the 2024 budget. This ambitious plan aims to secure peace and rebuild prosperity, but hidden within are tales of inefficiency and questionable spending. Key allocations include:</p>
+      <ul class="list-disc list-inside mb-4">
+        <li>Defense: N4.91 trillion</li>
+        <li>Infrastructure: N4.06 trillion</li>
+        <li>Education: N3.5 trillion</li>
+        <li>Health: N2.4 trillion</li>
+        <li>Others: N25.12 trillion</li>
+      </ul>
+      <p>The budget pie chart would visually represent these proportions, with Defense and Others dominating the allocation.</p>
+      <div class="chart-container">
+        <canvas id="budgetPieChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Overpriced Items Section -->
+    <section id="overpriced" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Overpriced Items: The Streetlight Scandal</h2>
+      <p class="mb-4">Highlighting a significant concern, N393.29 billion allocated for 1,477 streetlights equates to N266 million each, far exceeding global norms (N3-15 million), suggesting a 17 to 88 times overpricing. This raises questions about value for money.</p>
+      <ul class="list-disc list-inside mb-4">
+        <li>Nigeria 2025 Cost: N266 million per streetlight</li>
+        <li>Global Low: N3 million per streetlight</li>
+        <li>Global High: N15 million per streetlight</li>
+      </ul>
+      <p>A bar chart would compare these costs, and a radar chart would assess efficiency, transparency, and value, showing Nigeria lagging behind global standards.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="chart-container">
+          <canvas id="streetlightBarChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="streetlightRadarChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- National Assembly Insertions Section -->
+    <section id="insertions" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">National Assembly Insertions: N6.93 Trillion Mystery</h2>
+      <p class="mb-4">Detailing 11,122 projects worth N6.93 trillion inserted into the budget, including N1.72 trillion for unspecified agricultural projects. This suggests potential political influence.</p>
+      <div class="chart-container">
+        <canvas id="insertionStackedChart"></canvas>
+      </div>
+      <table class="w-full bg-white shadow rounded">
+        <thead><tr class="bg-gray-200"><th class="p-2">Category</th><th class="p-2">Projects</th><th class="p-2">Amount (N Billion)</th></tr></thead>
+        <tbody id="insertionTable"></tbody>
+      </table>
+    </section>
+
+    <!-- Agency Misalignment Section -->
+    <section id="agency" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Agency Misalignment: Beyond Mandates</h2>
+      <p class="mb-4">Noting agencies straying from core duties, such as the Nigerian Film Corporation (N3 billion for streetlights) and Nigerian Army (N400 million for roads).</p>
+      <ul class="list-disc list-inside mb-4">
+        <li>Nigerian Film Corporation: N3 billion (Streetlights), N1.5 billion (Mini-Stadium)</li>
+        <li>Nigerian Army: N400 million (Roads), N200 million (Schools)</li>
+      </ul>
+      <p>A scatter chart would plot these against a random impact score, highlighting misalignment.</p>
+      <div class="large-chart-container">
+        <canvas id="agencyScatterChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Economic Context Section -->
+    <section id="economic" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Economic Context</h2>
+      <p class="mb-4">With inflation at 34.6\% and a target of 15\%, the budget faces economic headwinds. Historical data shows:</p>
+      <ul class="list-disc list-inside mb-4">
+        <li>2023: Inflation 28.9\%, Budget N27.5 trillion</li>
+        <li>2024: Inflation 34.6\%, Budget N35.1 trillion</li>
+        <li>2025: Inflation target 15\%, Budget N54.99 trillion</li>
+      </ul>
+      <p>A line chart would track inflation and budget growth over these years.</p>
+      <div class="chart-container">
+        <canvas id="economicLineChart"></canvas>
+      </div>
+    </section>
+
+    <!-- Budget Comparison Section -->
+    <section id="comparison" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Budget Comparison (2023-2025)</h2>
+      <h3 class="text-xl font-semibold mb-2">2023 Budget: A Struggling Economy</h3>
+      <p class="mb-4">The 2023 budget, amended to N27.5 trillion from N20.5 trillion, themed 'Budget of Fiscal Sustainability and Transition,' addressed a slowing economy (GDP growth from 3.3\% to 2.9\%) with high inflation (18.8\% to 24.5\%) and a depreciating naira. Key allocations: N4 trillion for Defense, N2.5 trillion for Education, with only 59\% revenue target achieved. Outrageous allocations included N500 million for a 'Presidential Yacht' and N1.2 billion for 'Renovation of the President's Quarters.'</p>
+      <h3 class="text-xl font-semibold mb-2">2024 Budget: Renewed Hope Amid Challenges</h3>
+      <p class="mb-4">The 2024 budget, amended to N35.1 trillion from N28.7 trillion with a N6.2 trillion supplement, prioritized infrastructure (N3.5 trillion) and security (N3.25 trillion), but education (N2.18 trillion) fell short of UNESCO's 15-20\% benchmark. Inflation reached 34.6\%, eroding a new N70,000 minimum wage. Questionable spending included N197.93 billion for lawmakers' allowances and N5 billion for 'Zonal Development Projects' with unclear deliverables.</p>
+      <p class="mb-4">Budget metrics:</p>
+      <ul class="list-disc list-inside mb-4">
+        <li>2023: Revenue N21.7 trillion, Deficit N23.5 trillion, Total N27.5 trillion</li>
+        <li>2024: Revenue N18.32 trillion, Deficit N9.18 trillion, Total N35.1 trillion</li>
+        <li>2025: Revenue N41.81 trillion, Deficit N13.08 trillion, Total N54.99 trillion</li>
+      </ul>
+      <p>A bubble chart would visualize revenue versus deficit, with bubble size reflecting total budget.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="chart-container">
+          <canvas id="budgetGrowthLineChart"></canvas>
+        </div>
+        <div class="chart-container">
+          <canvas id="sectoralStackedAreaChart"></canvas>
+        </div>
+        <div class="large-chart-container md:col-span-2">
+          <canvas id="revenueDeficitBubbleChart"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- Sector Comparison Section -->
+    <section id="sector-comparison" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">Critical Sector Allocations: Nigeria vs. Developing Countries</h2>
+      <p class="mb-4">Nigeria's 2025 budget allocates 7.3\% to Education and 5.18\% to Health, below UNESCO's 15-20\% and Abuja Declaration's 15\% benchmarks. Comparatively:</p>
+      <div class="chart-container">
+        <canvas id="sectorComparisonBarChart"></canvas>
+      </div>
+      <table class="w-full bg-white shadow rounded mt-4">
+        <thead><tr class="bg-gray-200"><th class="p-2">Country</th><th class="p-2">Education (%)</th><th class="p-2">Health (%)</th><th class="p-2">Infrastructure (%)</th><th class="p-2">Defense (%)</th></tr></thead>
+        <tbody id="sectorComparisonTable"></tbody>
+      </table>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section id="cta" class="mb-12">
+      <h2 class="text-3xl font-semibold mb-4">What Can Be Done?</h2>
+      <p class="mb-4">This budget reveals inefficiencies costing billions. Proposed actions include:</p>
+      <ul class="list-disc list-inside mb-4">
+        <li>Audit: 80\% impact</li>
+        <li>Mandate Alignment: 70\% impact</li>
+        <li>Citizen Priority: 60\% impact</li>
+      </ul>
+      <p>A bar chart would illustrate these impact scores.</p>
+      <div class="chart-container">
+        <canvas id="recommendationBarChart"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <footer class="bg-green-800 text-white p-4 text-center">
+    <p>© 2025 Budget Explorer by Wisdom Idiakhoa | Built for Transparency | Thursday, June 05, 2025, 09:51 AM +08</p>
+  </footer>
+
+  <script>
+    // Error Handling Wrapper
+    const safeExecute = (fn, errorMessage) => {
+      try {
+        fn();
+      } catch (e) {
+        console.error(errorMessage || 'An error occurred:', e);
+      }
+    };
+
+    // Sample Data
+    const budgetData = {
+      total: 54990,
+      sectors: { Defense: 4910, Infrastructure: 4060, Education: 3500, Health: 2400, Others: 25120 }
+    };
+    const streetlightData = { nigeria: 266, globalLow: 3, globalHigh: 15 };
+    const insertionData = {
+      streetlights: { projects: 1477, amount: 393.29 },
+      boreholes: { projects: 538, amount: 114.53 },
+      ict: { projects: 2122, amount: 505.79 },
+      agriculture: { projects: 4371, amount: 1720 },
+      others: { projects: 2614, amount: 4196.39 }
+    };
+    const agencyData = [
+      { agency: "NFC", project: "Streetlights", amount: 3000 },
+      { agency: "NFC", project: "Mini-Stadium", amount: 1500 },
+      { agency: "Army", project: "Roads", amount: 400 },
+      { agency: "Army", project: "Schools", amount: 200 }
+    ];
+    const economicData = {
+      years: [2023, 2024, 2025],
+      inflation: [28.9, 34.6, 15],
+      budget: [27500, 35100, 54990]
+    };
+    const recommendationData = [
+      { action: "Audit", impact: 80 },
+      { action: "Mandate Alignment", impact: 70 },
+      { action: "Citizen Priority", impact: 60 }
+    ];
+    const budgetComparisonData = {
+      years: [2023, 2024, 2025],
+      totalBudget: [27500, 35100, 54990], // N Billion
+      revenue: [21700 / 44 * 1000, 18320 / 44 * 1000, 41810], // Converted to N Billion using approx. 2024 USD rate
+      deficit: [23500 / 44 * 1000, 9180 / 44 * 1000, 13080],
+      sectoral2023: { Defense: 4000, Infrastructure: 3000, Education: 2500, Health: 2000, Others: 16000 },
+      sectoral2024: { Defense: 4500, Infrastructure: 3500, Education: 3000, Health: 2200, Others: 21900 },
+      sectoral2025: { Defense: 4910, Infrastructure: 4060, Education: 3500, Health: 2400, Others: 25120 }
+    };
+    const sectorComparisonData = {
+      countries: ['Nigeria (2025)', 'Kenya (Avg)', 'Ghana (Avg)', 'India (Avg)'],
+      education: [7.3, 18, 16, 14],
+      health: [5.18, 12, 10, 6],
+      infrastructure: [7.4, 10, 9, 8],
+      defense: [8.9, 5, 4, 6]
+    };
+
+    // Pie Chart (Home)
+    safeExecute(() => {
+      const budgetPieCtx = document.getElementById('budgetPieChart').getContext('2d');
+      new Chart(budgetPieCtx, {
+        type: 'pie',
+        data: { labels: Object.keys(budgetData.sectors), datasets: [{ data: Object.values(budgetData.sectors), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'] }] },
+        options: { responsive: true, plugins: { title: { display: true, text: '2025 Budget Allocation (N Billion)' } } }
+      });
+    }, 'Error rendering Budget Pie Chart');
+
+    // Bar Chart (Overpriced - Streetlights)
+    safeExecute(() => {
+      const streetlightBarCtx = document.getElementById('streetlightBarChart').getContext('2d');
+      new Chart(streetlightBarCtx, {
+        type: 'bar',
+        data: { labels: ['Nigeria 2025', 'Global Low', 'Global High'], datasets: [{ label: 'Cost per Streetlight (N Million)', data: [streetlightData.nigeria, streetlightData.globalLow, streetlightData.globalHigh], backgroundColor: ['#FF4D4F', '#36A2EB', '#36A2EB'] }] },
+        options: { scales: { y: { beginAtZero: true, title: { display: true, text: 'Cost (N Million)' } } }, plugins: { title: { display: true, text: 'Streetlight Cost Discrepancy' } } }
+      });
+    }, 'Error rendering Streetlight Bar Chart');
+
+    // Radar Chart (Overpriced - Streetlights)
+    safeExecute(() => {
+      const streetlightRadarCtx = document.getElementById('streetlightRadarChart').getContext('2d');
+      new Chart(streetlightRadarCtx, {
+        type: 'radar',
+        data: { labels: ['Cost Efficiency', 'Value for Money', 'Transparency'], datasets: [{ label: 'Nigeria 2025', data: [10, 20, 30], backgroundColor: 'rgba(255, 99, 132, 0.2)', borderColor: '#FF6384' }, { label: 'Global Norm', data: [80, 90, 85], backgroundColor: 'rgba(54, 162, 235, 0.2)', borderColor: '#36A2EB' }] },
+        options: { scales: { r: { beginAtZero: true } }, plugins: { title: { display: true, text: 'Efficiency Comparison' } } }
+      });
+    }, 'Error rendering Streetlight Radar Chart');
+
+    // Stacked Bar Chart (Insertions)
+    safeExecute(() => {
+      const insertionStackedCtx = document.getElementById('insertionStackedChart').getContext('2d');
+      new Chart(insertionStackedCtx, {
+        type: 'bar',
+        data: { labels: ['Streetlights', 'Boreholes', 'ICT', 'Agriculture', 'Others'], datasets: [{ label: 'Projects', data: Object.values(insertionData).map(d => d.projects), backgroundColor: '#FF6384' }, { label: 'Amount (N Billion)', data: Object.values(insertionData).map(d => d.amount), backgroundColor: '#36A2EB' }] },
+        options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Count / Amount (N Billion)' } } }, plugins: { title: { display: true, text: 'Insertion Breakdown' } } }
+      });
+    }, 'Error rendering Insertion Stacked Chart');
+
+    // Populate Insertion Table
+    safeExecute(() => {
+      const insertionTable = document.getElementById('insertionTable');
+      Object.entries(insertionData).forEach(([key, value]) => {
+        const row = insertionTable.insertRow();
+        row.insertCell(0).textContent = key.charAt(0).toUpperCase() + key.slice(1);
+        row.insertCell(1).textContent = value.projects;
+        row.insertCell(2).textContent = `N${value.amount.toLocaleString()}B`;
+      });
+    }, 'Error populating Insertion Table');
+
+    // Scatter Chart (Agency)
+    safeExecute(() => {
+      const agencyScatterCtx = document.getElementById('agencyScatterChart').getContext('2d');
+      new Chart(agencyScatterCtx, {
+        type: 'scatter',
+        data: { datasets: [{ label: 'Spending (N Million)', data: agencyData.map(d => ({ x: d.amount, y: Math.random() * 100, label: `${d.agency}: ${d.project}` })), backgroundColor: '#FF9999' }] },
+        options: { scales: { x: { title: { display: true, text: 'Amount (N Million)' } }, y: { title: { display: true, text: 'Random Impact Score' } } }, plugins: { title: { display: true, text: 'Agency Spending Scatter' } } }
+      });
+    }, 'Error rendering Agency Scatter Chart');
+
+    // Line Chart (Economic)
+    safeExecute(() => {
+      const economicLineCtx = document.getElementById('economicLineChart').getContext('2d');
+      new Chart(economicLineCtx, {
+        type: 'line',
+        data: { labels: economicData.years, datasets: [{ label: 'Inflation (%)', data: economicData.inflation, borderColor: '#FF6384', fill: false }, { label: 'Budget (N Billion)', data: economicData.budget, borderColor: '#36A2EB', fill: false }] },
+        options: { scales: { y: { title: { display: true, text: 'Value' } } }, plugins: { title: { display: true, text: 'Economic Trends' } } }
+      });
+    }, 'Error rendering Economic Line Chart');
+
+    // Line Chart (Budget Growth)
+    safeExecute(() => {
+      const budgetGrowthLineCtx = document.getElementById('budgetGrowthLineChart').getContext('2d');
+      new Chart(budgetGrowthLineCtx, {
+        type: 'line',
+        data: { labels: budgetComparisonData.years, datasets: [{ label: 'Total Budget (N Billion)', data: budgetComparisonData.totalBudget, borderColor: '#36A2EB', fill: false, tension: 0.1 }] },
+        options: { scales: { y: { beginAtZero: true, title: { display: true, text: 'Amount (N Billion)' } } }, plugins: { title: { display: true, text: 'Budget Growth (2023-2025)' } } }
+      });
+    }, 'Error rendering Budget Growth Line Chart');
+
+    // Stacked Bar Chart (Sectoral Comparison)
+    safeExecute(() => {
+      const sectoralStackedAreaCtx = document.getElementById('sectoralStackedAreaChart').getContext('2d');
+      new Chart(sectoralStackedAreaCtx, {
+        type: 'bar',
+        data: {
+          labels: budgetComparisonData.years,
+          datasets: [
+            { label: 'Defense', data: [budgetComparisonData.sectoral2023.Defense, budgetComparisonData.sectoral2024.Defense, budgetComparisonData.sectoral2025.Defense], backgroundColor: '#FF6384', stack: 'Stack 0' },
+            { label: 'Infrastructure', data: [budgetComparisonData.sectoral2023.Infrastructure, budgetComparisonData.sectoral2024.Infrastructure, budgetComparisonData.sectoral2025.Infrastructure], backgroundColor: '#36A2EB', stack: 'Stack 0' },
+            { label: 'Education', data: [budgetComparisonData.sectoral2023.Education, budgetComparisonData.sectoral2024.Education, budgetComparisonData.sectoral2025.Education], backgroundColor: '#FFCE56', stack: 'Stack 0' },
+            { label: 'Health', data: [budgetComparisonData.sectoral2023.Health, budgetComparisonData.sectoral2024.Health, budgetComparisonData.sectoral2025.Health], backgroundColor: '#4BC0C0', stack: 'Stack 0' },
+            { label: 'Others', data: [budgetComparisonData.sectoral2023.Others, budgetComparisonData.sectoral2024.Others, budgetComparisonData.sectoral2025.Others], backgroundColor: '#9966FF', stack: 'Stack 0' }
+          ]
+        },
+        options: { scales: { x: { stacked: true }, y: { stacked: true, title: { display: true, text: 'Amount (N Billion)' } } }, plugins: { title: { display: true, text: 'Sectoral Allocation Comparison (2023-2025)' } } }
+      });
+    }, 'Error rendering Sectoral Stacked Bar Chart');
+
+    // Bubble Chart (Revenue vs Deficit)
+    safeExecute(() => {
+      const revenueDeficitBubbleCtx = document.getElementById('revenueDeficitBubbleChart').getContext('2d');
+      new Chart(revenueDeficitBubbleCtx, {
+        type: 'bubble',
+        data: {
+          datasets: [{
+            label: 'Budget Metrics',
+            data: budgetComparisonData.years.map((year, idx) => ({
+              x: budgetComparisonData.revenue[idx],
+              y: budgetComparisonData.deficit[idx],
+              r: budgetComparisonData.totalBudget[idx] / 1000,
+              label: year
+            })),
+            backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+          }]
+        },
+        options: {
+          scales: {
+            x: { title: { display: true, text: 'Revenue (N Billion)' }, ticks: { callback: (value) => `N${value.toLocaleString()}B` } },
+            y: { title: { display: true, text: 'Deficit (N Billion)' }, ticks: { callback: (value) => `N${value.toLocaleString()}B` } }
+          },
+          plugins: {
+            title: { display: true, text: 'Revenue vs Deficit (2023-2025)' },
+            tooltip: {
+              callbacks: {
+                label: (context) => {
+                  const data = context.raw;
+                  return `${data.label}: Revenue: N${data.x.toLocaleString()}B, Deficit: N${data.y.toLocaleString()}B, Budget: N${data.r * 1000}B`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }, 'Error rendering Revenue vs Deficit Bubble Chart');
+
+    // Bar Chart (Sector Comparison)
+    safeExecute(() => {
+      const sectorComparisonBarCtx = document.getElementById('sectorComparisonBarChart').getContext('2d');
+      new Chart(sectorComparisonBarCtx, {
+        type: 'bar',
+        data: {
+          labels: sectorComparisonData.countries,
+          datasets: [
+            { label: 'Education (%)', data: sectorComparisonData.education, backgroundColor: '#FFCE56' },
+            { label: 'Health (%)', data: sectorComparisonData.health, backgroundColor: '#4BC0C0' },
+            { label: 'Infrastructure (%)', data: sectorComparisonData.infrastructure, backgroundColor: '#36A2EB' },
+            { label: 'Defense (%)', data: sectorComparisonData.defense, backgroundColor: '#FF6384' }
+          ]
+        },
+        options: {
+          scales: { y: { beginAtZero: true, title: { display: true, text: 'Percentage of Budget' } } },
+          plugins: { title: { display: true, text: 'Critical Sector Allocations Comparison' } }
+        }
+      });
+    }, 'Error rendering Sector Comparison Bar Chart');
+
+    // Populate Sector Comparison Table
+    safeExecute(() => {
+      const sectorComparisonTable = document.getElementById('sectorComparisonTable');
+      sectorComparisonData.countries.forEach((country, idx) => {
+        const row = sectorComparisonTable.insertRow();
+        row.insertCell(0).textContent = country;
+        row.insertCell(1).textContent = sectorComparisonData.education[idx] + '%';
+        row.insertCell(2).textContent = sectorComparisonData.health[idx] + '%';
+        row.insertCell(3).textContent = sectorComparisonData.infrastructure[idx] + '%';
+        row.insertCell(4).textContent = sectorComparisonData.defense[idx] + '%';
+      });
+    }, 'Error populating Sector Comparison Table');
+
+    // Bar Chart (Recommendations)
+    safeExecute(() => {
+      const recommendationBarCtx = document.getElementById('recommendationBarChart').getContext('2d');
+      new Chart(recommendationBarCtx, {
+        type: 'bar',
+        data: { labels: recommendationData.map(d => d.action), datasets: [{ label: 'Impact Score', data: recommendationData.map(d => d.impact), backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56'] }] },
+        options: { scales: { y: { beginAtZero: true, title: { display: true, text: 'Impact Score' } } }, plugins: { title: { display: true, text: 'Impact of Reforms' } } }
+      });
+    }, 'Error rendering Recommendation Bar Chart');
+  </script>
+</body>
+</html>
